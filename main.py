@@ -11,6 +11,9 @@ if __name__ == "__main__":
     CardDistribution.deal_initial_cards(deck, players)
     CardDistribution.display_player_hands(players)
 
+    revealed_cards = {}     
+    player_points = {}      
+
     # Pyramid Phase
     pyramid_cards = pyramid.build_pyramid(deck)
     pyramid.reveal_pyramid_and_score(pyramid_cards, players, revealed_cards, player_points)

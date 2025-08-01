@@ -1,17 +1,56 @@
 import pydealer
 
+# Build pyramid: returns list of rows
 def build_pyramid(deck):
     pyramid = []
     total_rows = 5
+    card_index = 0
+
     for row in range(1, total_rows + 1):
-        pyramid_row = [deck.deal(1)[0] for _ in range(row)]
+        pyramid_row = []
+        for _ in range(row):
+            pyramid_row.append(deck[card_index])
+            card_index += 1
         pyramid.append(pyramid_row)
+
     return pyramid
 
-def display_pyramid(pyramid, revealed=None):
-    if revealed is None:
+# Reveal cards from bottom to top
+def reveal_pyramid_and_score(pyramid, players, revealed_cards, player_points):
+    print("\n--- Pyramid Phase ---")
+    for player in players:
+        print(f"\n{player}'s turn:")
+        score = 0
         revealed = set()
 
+        for row_index in reversed(range(len(pyramid))):
+            row = pyramid[row_index]
+            for col_index, card in enumerate(row):
+                revealed.add((row_index, col_index))
+                points = row_index + 1
+                score += points
+                print(f"{player} flipped {card} from row {row_index + 1} and earned {points} point(s).")
+                print(f"Current Score: {score}\n")
+                display_pyramid(pyramid, revealed)
+                print()
+
+                choice = input("Keep going? (y/n): ").strip().lower()
+                if choice != 'y':
+                    print(f"{player} stopped with {score} points.")
+                    player_points[player] = score
+                    revealed_cards[player] = revealed
+                    break
+            else:
+                continue
+            break  # stop outer loop if player chose to stop
+
+        # If finished all cards
+        if (row_index, col_index) == (0, 0):
+            print(f"{player} finished the pyramid! Total: {score}")
+            player_points[player] = score
+            revealed_cards[player] = revealed
+
+def display_pyramid(pyramid, revealed):
     for i, row in enumerate(pyramid):
         indent = " " * (5 - i)
         display_row = []
@@ -21,24 +60,3 @@ def display_pyramid(pyramid, revealed=None):
             else:
                 display_row.append("XX")
         print(indent + "  ".join(display_row))
-
-def get_card_point(row_index):
-    return row_index + 1
-
-def reveal_pyramid_and_score(pyramid, players, revealed, points):
-    for i, row in enumerate(pyramid):
-        for j, card in enumerate(row):
-            print(f"\nRevealing card at row {i + 1}, column {j + 1}: {card}")
-            revealed.add((i, j))
-            display_pyramid(pyramid, revealed)
-
-            for player_name, player_data in players.items():
-                for player_card in player_data['hand']:
-                    if player_card.value == card.value:
-                        choice = input(f"{player_name}, you have {player_card}. Play it for {i + 1} point(s)? (y/n): ").lower()
-                        if choice == 'y':
-                            points[player_name] += (i + 1)
-                            print(f"{player_name} earns {i + 1} point(s)!")
-                            player_data['hand'].remove(player_card)
-                            break  # Prevent double scoring for multiple identical cards
-
