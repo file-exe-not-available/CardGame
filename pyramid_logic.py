@@ -1,6 +1,6 @@
 import pydealer
 
-# Build pyramid: returns list of rows
+#Build pyramid
 def build_pyramid(deck):
     pyramid = []
     total_rows = 5
@@ -15,19 +15,24 @@ def build_pyramid(deck):
 
     return pyramid
 
-# Reveal cards from bottom to top
+#Reveal cards from bottom to top
 def reveal_pyramid_and_score(pyramid, players, revealed_cards, player_points):
     print("\n--- Pyramid Phase ---")
+    total_rows = len(pyramid)
+
     for player in players:
         print(f"\n{player}'s turn:")
         score = 0
         revealed = set()
 
-        for row_index in reversed(range(len(pyramid))):
+        for row_index in reversed(range(total_rows)):
             row = pyramid[row_index]
             for col_index, card in enumerate(row):
                 revealed.add((row_index, col_index))
-                points = row_index + 1
+
+                # Top row = 5 pts, bottom row = 1 pt
+                points = total_rows - row_index
+
                 score += points
                 print(f"{player} flipped {card} from row {row_index + 1} and earned {points} point(s).")
                 print(f"Current Score: {score}\n")
@@ -42,7 +47,7 @@ def reveal_pyramid_and_score(pyramid, players, revealed_cards, player_points):
                     break
             else:
                 continue
-            break  # stop outer loop if player chose to stop
+            break  
 
         # If finished all cards
         if (row_index, col_index) == (0, 0):
@@ -50,6 +55,7 @@ def reveal_pyramid_and_score(pyramid, players, revealed_cards, player_points):
             player_points[player] = score
             revealed_cards[player] = revealed
 
+#Display pyramid with XX for hidden and card text for revealed
 def display_pyramid(pyramid, revealed):
     for i, row in enumerate(pyramid):
         indent = " " * (5 - i)
