@@ -1,81 +1,97 @@
+import pydealer
+import random
+
+player_points = {}  # Ensure this is accessible or passed in if stored elsewhere
+
+def ask_red_or_black():
+    guess = input("Red or Black? ").strip().lower()
+    return guess
+
+def ask_higher_or_lower(prev_card):
+    guess = input(f"Higher or Lower than {prev_card}? ").strip().lower()
+    return guess
+
+def ask_inside_or_outside(card1, card2):
+    guess = input(f"Inside or Outside of {card1} and {card2}? ").strip().lower()
+    return guess
+
+def ask_suit():
+    guess = input("Guess the suit (Hearts, Diamonds, Clubs, Spades): ").strip().capitalize()
+    return guess
+
+def update_points(player_name, points):
+    player_points[player_name] = player_points.get(player_name, 0) + points
+
+def run_ride_the_bus(player_name, deck):
+    print(f"\n{player_name} is now riding the bus!")
+
+    card_history = []
+    index = 0  # Tracks the current stage (0 to 3)
+    cards_used = 0  # Counts how many cards have been dealt in this phase
+
+    while cards_used < 14:
+        card = deck.deal(1)[0]
+        cards_used += 1
+
+        if index == 0:
+            guess = ask_red_or_black()
+            is_red = card.suit in ["Hearts", "Diamonds"]
+            correct = (is_red and guess == "red") or (not is_red and guess == "black")
+            if correct:
+                print(f"Correct! It was {card}.")
+                update_points(player_name, 2)
+                card_history.append(card)
+                index += 1
+            else:
+                print(f"Wrong! It was {card}. Try again with a new card...")
+
+        elif index == 1:
+            guess = ask_higher_or_lower(card_history[-1])
+            correct = (card.value > card_history[-1].value and guess == "higher") or \
+                      (card.value < card_history[-1].value and guess == "lower")
+            if correct:
+                print(f"Correct! It was {card}.")
+                update_points(player_name, 2)
+                card_history.append(card)
+                index += 1
+            else:
+                print(f"Wrong! It was {card}. Returning to Red or Black with new card...")
+                index = 0
+
+        elif index == 2:
+            card1 = card_history[-2]
+            card2 = card_history[-1]
+            low = min(card1.value, card2.value)
+            high = max(card1.value, card2.value)
+            guess = ask_inside_or_outside(card1, card2)
+            correct = (low < card.value < high and guess == "inside") or \
+                      (not (low < card.value < high) and guess == "outside")
+            if correct:
+                print(f"Correct! It was {card}.")
+                update_points(player_name, 2)
+                card_history.append(card)
+                index += 1
+            else:
+                print(f"Wrong! It was {card}. Returning to Red or Black with new card...")
+                index = 0
+
+        elif index == 3:
+            guess = ask_suit()
+            if guess == card.suit:
+                print(f"Correct! It was {card}. You win the Ride the Bus challenge!")
+                update_points(player_name, 2)
+            else:
+                print(f"Wrong! It was {card}. Returning to Red or Black with new card...")
+            index = 0
+
+    print(f"\n{player_name}'s Ride the Bus phase is over after 14 cards.")
+    print(f"{player_name}'s final score after Ride the Bus: {player_points[player_name]} points\n")
+
+def display_final_scores():
+    print("\n--- Final Scores ---")
+    for player, points in player_points.items():
+        print(f"{player}: {points} point(s)")
+
 def ride_the_bus_for_all(players, deck):
-    print("\n--- Ride the Bus Phase Begins ---\n")
-
     for player in players:
-        print(f"\n{player} is now riding the bus!")
-        bus_cards = deck.deal(14)
-        print("Cards for this ride:")
-        print(', '.join(str(card) for card in bus_cards))
-
-        stage = 1
-        index = 0
-        first_card = None
-        second_card = None
-
-        max_stage_reached = 1
-        failed_attempts = 0
-
-        while index < len(bus_cards):
-            card = bus_cards[index]
-            print(f"\nCard #{index + 1}: {card}")
-
-            if stage == 1:
-                guess = input(f"{player}, Red or Black? ").lower()
-                actual = 'red' if card.suit in ['Hearts', 'Diamonds'] else 'black'
-                if guess == actual:
-                    print("Correct!")
-                    first_card = card
-                    stage += 1
-                    max_stage_reached = max(max_stage_reached, stage)
-                else:
-                    print(f"Wrong! It was {card}. Restarting from card #{index + 2}...")
-                    failed_attempts += 1
-                    stage = 1
-                    index += 1
-
-            elif stage == 2:
-                guess = input(f"{player}, Higher or Lower than {first_card}? ").lower()
-                if (guess == 'higher' and card.value > first_card.value) or \
-                   (guess == 'lower' and card.value < first_card.value):
-                    print("Correct!")
-                    second_card = card
-                    stage += 1
-                    max_stage_reached = max(max_stage_reached, stage)
-                else:
-                    print(f"Wrong! It was {card}. Restarting from card #{index + 2}...")
-                    failed_attempts += 1
-                    stage = 1
-                    index += 1
-
-            elif stage == 3:
-                guess = input(f"{player}, In-between or Outside of {first_card} and {second_card}? ").lower()
-                low, high = sorted([first_card.value, second_card.value])
-                in_between = low < card.value < high
-                if (guess == 'in-between' and in_between) or (guess == 'outside' and not in_between):
-                    print("Correct!")
-                    stage += 1
-                    max_stage_reached = max(max_stage_reached, stage)
-                else:
-                    print(f"Wrong! It was {card}. Restarting from card #{index + 2}...")
-                    failed_attempts += 1
-                    stage = 1
-                    index += 1
-
-            elif stage == 4:
-                guess = input(f"{player}, Guess the suit: ").capitalize()
-                if card.suit == guess:
-                    print(f"Correct! {player} completed the bus ride!")
-                    break
-                else:
-                    print(f"Wrong! It was {card}. Restarting from card #{index + 2}...")
-                    failed_attempts += 1
-                    stage = 1
-                    index += 1
-
-        else:
-            print(f"{player} could not complete the bus ride.")
-
-        print(f"\nSummary for {player}:")
-        print(f"- Max Stage Reached: {max_stage_reached}/4")
-        print(f"- Failed Attempts: {failed_attempts}")
-        print("-" * 30)
+        run_ride_the_bus(player, deck)
