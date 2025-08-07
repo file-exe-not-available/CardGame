@@ -1,9 +1,9 @@
 import pydealer
 import random
 
-player_points = {}  # Ensure this is accessible or passed in if stored elsewhere
+player_points = {}
 
-# --- Helper to convert card rank to numeric value ---
+# Helper to convert card rank to numeric value
 def rank_value(card):
     try:
         return int(card.value)
@@ -14,7 +14,7 @@ def rank_value(card):
             return int(s)
         return mapping.get(s, 0)
 
-# --- Input helpers ---
+# Input helpers
 def ask_red_or_black():
     guess = input("Red or Black? ").strip().lower()
     return guess
@@ -31,11 +31,11 @@ def ask_suit():
     guess = input("Guess the suit (Hearts, Diamonds, Clubs, Spades): ").strip().capitalize()
     return guess
 
-# --- Points tracking ---
+# Points tracking
 def update_points(player_name, points):
     player_points[player_name] = player_points.get(player_name, 0) + points
 
-# --- Ride the Bus logic ---
+# Ride the Bus logic
 def run_ride_the_bus(player_name, deck):
     print(f"\n{player_name} is now riding the bus!")
 
@@ -101,13 +101,13 @@ def run_ride_the_bus(player_name, deck):
     print(f"\n{player_name}'s Ride the Bus phase is over after 14 cards.")
     print(f"{player_name}'s final score after Ride the Bus: {player_points[player_name]} points\n")
 
-# --- Display final scores ---
+# Display final scores
 def display_final_scores():
     print("\n--- Final Scores ---")
     for player, points in player_points.items():
         print(f"{player}: {points} point(s)")
 
-# --- For running all players ---
+# For running all players
 def ride_the_bus_for_all(players, deck):
     for player in players:
         run_ride_the_bus(player, deck)
