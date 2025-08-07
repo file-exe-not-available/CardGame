@@ -66,4 +66,4 @@ def display_pyramid(pyramid, revealed):
             else:
                 display_row.append("XX")
         print(indent + "  ".join(display_row))
-        #checking
+        
