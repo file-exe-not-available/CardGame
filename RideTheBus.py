@@ -3,6 +3,18 @@ import random
 
 player_points = {}  # Ensure this is accessible or passed in if stored elsewhere
 
+# --- Helper to convert card rank to numeric value ---
+def rank_value(card):
+    try:
+        return int(card.value)
+    except Exception:
+        mapping = {"Ace": 1, "Jack": 11, "Queen": 12, "King": 13}
+        s = str(card.value)
+        if s.isdigit():
+            return int(s)
+        return mapping.get(s, 0)
+
+# --- Input helpers ---
 def ask_red_or_black():
     guess = input("Red or Black? ").strip().lower()
     return guess
@@ -19,15 +31,17 @@ def ask_suit():
     guess = input("Guess the suit (Hearts, Diamonds, Clubs, Spades): ").strip().capitalize()
     return guess
 
+# --- Points tracking ---
 def update_points(player_name, points):
     player_points[player_name] = player_points.get(player_name, 0) + points
 
+# --- Ride the Bus logic ---
 def run_ride_the_bus(player_name, deck):
     print(f"\n{player_name} is now riding the bus!")
 
     card_history = []
-    index = 0  # Tracks the current stage (0 to 3)
-    cards_used = 0  # Counts how many cards have been dealt in this phase
+    index = 0  # Stage (0=Red/Black, 1=Higher/Lower, 2=Inside/Outside, 3=Suit)
+    cards_used = 0  # How many cards have been dealt in this phase
 
     while cards_used < 14:
         card = deck.deal(1)[0]
@@ -47,8 +61,8 @@ def run_ride_the_bus(player_name, deck):
 
         elif index == 1:
             guess = ask_higher_or_lower(card_history[-1])
-            correct = (card.value > card_history[-1].value and guess == "higher") or \
-                      (card.value < card_history[-1].value and guess == "lower")
+            correct = (rank_value(card) > rank_value(card_history[-1]) and guess == "higher") or \
+                      (rank_value(card) < rank_value(card_history[-1]) and guess == "lower")
             if correct:
                 print(f"Correct! It was {card}.")
                 update_points(player_name, 2)
@@ -61,11 +75,11 @@ def run_ride_the_bus(player_name, deck):
         elif index == 2:
             card1 = card_history[-2]
             card2 = card_history[-1]
-            low = min(card1.value, card2.value)
-            high = max(card1.value, card2.value)
+            low = min(rank_value(card1), rank_value(card2))
+            high = max(rank_value(card1), rank_value(card2))
             guess = ask_inside_or_outside(card1, card2)
-            correct = (low < card.value < high and guess == "inside") or \
-                      (not (low < card.value < high) and guess == "outside")
+            in_between = low < rank_value(card) < high
+            correct = (in_between and guess == "inside") or (not in_between and guess == "outside")
             if correct:
                 print(f"Correct! It was {card}.")
                 update_points(player_name, 2)
@@ -87,11 +101,13 @@ def run_ride_the_bus(player_name, deck):
     print(f"\n{player_name}'s Ride the Bus phase is over after 14 cards.")
     print(f"{player_name}'s final score after Ride the Bus: {player_points[player_name]} points\n")
 
+# --- Display final scores ---
 def display_final_scores():
     print("\n--- Final Scores ---")
     for player, points in player_points.items():
         print(f"{player}: {points} point(s)")
 
+# --- For running all players ---
 def ride_the_bus_for_all(players, deck):
     for player in players:
         run_ride_the_bus(player, deck)
